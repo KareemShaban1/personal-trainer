@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0f7473" />
+    <meta name="description" content="Sports academy operations, simplified" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Trainer" />
+    <title>Trainer SaaS — Sports Academy Platform</title>
+    <script>
+      (function () {
+        try {
+          var raw = localStorage.getItem('trainer_saas_appearance')
+          if (!raw) return
+          var t = JSON.parse(raw)
+          var root = document.documentElement
+          function clamp(n) { return Math.min(255, Math.max(0, Math.round(n))) }
+          function hexToRgb(hex) {
+            var c = String(hex || '').replace('#', '')
+            if (c.length === 3) c = c.split('').map(function (x) { return x + x }).join('')
+            var n = parseInt(c, 16)
+            if (isNaN(n)) return [15, 116, 115]
+            return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
+          }
+          function rgbToHex(r, g, b) {
+            return '#' + [r, g, b].map(function (v) {
+              return clamp(v).toString(16).padStart(2, '0')
+            }).join('')
+          }
+          function mix(hex, target, amount) {
+            var a = hexToRgb(hex), b = hexToRgb(target)
+            return rgbToHex(a[0] + (b[0] - a[0]) * amount, a[1] + (b[1] - a[1]) * amount, a[2] + (b[2] - a[2]) * amount)
+          }
+          var primary = t.primary || '#0f7473'
+          var dark = t.primary_dark || '#0d5c5c'
+          var light = t.primary_light || '#3aadaa'
+          var scale = {
+            50: mix(primary, '#ffffff', 0.92),
+            100: mix(primary, '#ffffff', 0.8),
+            200: mix(light, '#ffffff', 0.45),
+            300: mix(light, '#ffffff', 0.15),
+            400: light,
+            500: mix(primary, light, 0.35),
+            600: primary,
+            700: dark,
+            800: mix(dark, '#000000', 0.2),
+            900: mix(dark, '#000000', 0.35),
+            950: mix(dark, '#000000', 0.55)
+          }
+          root.style.setProperty('--brand', primary)
+          root.style.setProperty('--brand-dark', dark)
+          root.style.setProperty('--brand-light', light)
+          root.style.setProperty('--accent', t.accent || '#c45c26')
+          root.style.setProperty('--surface', t.surface || '#f4f7f8')
+          root.style.setProperty('--ink', t.ink || '#0f172a')
+          root.style.setProperty('--border', t.border || '#d9e3e6')
+          if (t.border_radius) root.style.setProperty('--radius', t.border_radius)
+          Object.keys(scale).forEach(function (k) {
+            root.style.setProperty('--color-brand-' + k, scale[k])
+          })
+          root.style.setProperty('--color-accent', t.accent || '#c45c26')
+          root.style.setProperty('--color-surface', t.surface || '#f4f7f8')
+          root.style.setProperty('--color-border-subtle', t.border || '#d9e3e6')
+          root.style.setProperty('--color-slate-ink', t.ink || '#0f172a')
+          var meta = document.querySelector('meta[name="theme-color"]')
+          if (meta) meta.setAttribute('content', primary)
+          if (t.brand_name) document.title = t.brand_name + ' — Sports Academy Platform'
+        } catch (e) {}
+      })()
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
