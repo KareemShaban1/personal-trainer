@@ -7,7 +7,7 @@ Multi-tenant SaaS for trainers and training academies (Egypt/MENA-ready). Manage
 | Layer | Tech |
 |-------|------|
 | Frontend | React 19, TypeScript, Vite, Tailwind CSS 4, TanStack Query, React Hook Form, Zod, i18next, Recharts |
-| Backend | Laravel 12, PHP 8.3, Sanctum (Bearer tokens), Spatie Permission, Pest |
+| Backend | Laravel 12, PHP 8.2, Sanctum (Bearer tokens), Spatie Permission, Pest |
 | Database | MySQL 8 |
 | Local queues/cache | Database queue + file cache (Redis optional for production) |
 
@@ -22,7 +22,7 @@ trainer-saas/
 
 ## Prerequisites (Windows)
 
-- PHP 8.3+ with `pdo_mysql`, Composer
+- PHP 8.2+ with `pdo_mysql`, `mbstring`, Composer
 - MySQL 8
 - Node.js 20+
 - Redis optional (not required for local default config)

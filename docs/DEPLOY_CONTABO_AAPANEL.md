@@ -5,17 +5,24 @@ Step-by-step guide to deploy this project on a Contabo VPS using [aaPanel](https
 | Component | Production target |
 |-----------|-------------------|
 | Frontend | React SPA (`frontend/dist`) served by Nginx |
-| Backend | Laravel 12 API (`backend/public`) on PHP 8.3-FPM |
+| Backend | Laravel 12 API (`backend/public`) on PHP 8.2-FPM |
 | Database | MySQL 8 |
 | Queue | `php artisan queue:work` (Supervisor / aaPanel Process Manager) |
 | Scheduler | Cron: `* * * * * php artisan schedule:run` |
 
-Recommended domains:
+## Domain layout (recommended: same domain)
 
-| Purpose | Example |
-|---------|---------|
-| Frontend | `https://app.yourdomain.com` |
-| API | `https://api.yourdomain.com` |
+Use **one domain** for both SPA and API. Nginx serves the React app at `/` and Laravel at `/api`.
+
+| Purpose | URL |
+|---------|-----|
+| App (SPA) | `https://yourdomain.com` |
+| API | `https://yourdomain.com/api` |
+| Uploads | `https://yourdomain.com/storage/...` |
+
+This avoids CORS issues, needs one SSL certificate, and matches how the frontend already treats `/api` in the PWA config.
+
+> Prefer separate subdomains (`app.` + `api.`)? See [Alternative: two subdomains](#alternative-two-subdomains) at the end.
 
 ---
 
@@ -23,9 +30,9 @@ Recommended domains:
 
 1. Order a Contabo VPS (Ubuntu 22.04 or 24.04 LTS recommended).
 2. Note the **root password** and **public IP** from the Contabo panel.
-3. Point DNS A records to the VPS IP:
-   - `app.yourdomain.com` → VPS IP
-   - `api.yourdomain.com` → VPS IP
+3. Point DNS A record to the VPS IP:
+   - `yourdomain.com` → VPS IP
+   - (optional) `www.yourdomain.com` → VPS IP
 4. Open Contabo firewall / security group if needed: ports **22**, **80**, **443**.
 
 SSH in:
@@ -130,75 +137,39 @@ Save these credentials for `backend/.env`.
 
 ---
 
-## 5. Create websites
-
-### 5.1 API site
+## 5. Create one website (same domain)
 
 **Website → Add site**
 
 | Field | Value |
 |-------|-------|
-| Domain | `api.yourdomain.com` |
-| Root | `/www/wwwroot/api.yourdomain.com` |
+| Domain | `yourdomain.com` (+ `www.yourdomain.com` if used) |
+| Root | `/www/wwwroot/yourdomain.com` (temporary; you will point it at Laravel `public`) |
 | PHP | **PHP-83** |
 | Database | Do **not** create another DB here if you already created one |
 
-After creation:
-
-1. Open site → **Settings → Website directory**.
-2. Set running directory to `/public` (Laravel document root).
-3. Enable **Force HTTPS** after SSL is issued.
-
-### 5.2 Frontend site
-
-**Website → Add site**
-
-| Field | Value |
-|-------|-------|
-| Domain | `app.yourdomain.com` |
-| Root | `/www/wwwroot/app.yourdomain.com` |
-| PHP | Pure static / any (SPA only needs Nginx) |
-
 ---
 
-## 6. Upload / clone the project
-
-### Option A — Git (recommended)
-
-```bash
-# API
-cd /www/wwwroot
-rm -rf api.yourdomain.com
-git clone https://github.com/YOUR_ORG/trainer-saas.git api.yourdomain.com
-# Keep only backend files in the web root, or symlink — simplest: clone then point site at backend
-
-cd /www/wwwroot/api.yourdomain.com
-# If repo is monorepo, use backend as the site root:
-# Site root in aaPanel should be: /www/wwwroot/trainer-saas/backend
-```
-
-Practical layout:
-
-```text
-/www/wwwroot/trainer-saas/          # full git clone
-  backend/                          # ← aaPanel API site root
-  frontend/                         # build here, copy dist to app site
-```
+## 6. Clone the project
 
 ```bash
 cd /www/wwwroot
 git clone https://github.com/YOUR_ORG/trainer-saas.git trainer-saas
 ```
 
-Then in aaPanel:
+Layout:
 
-- API site root → `/www/wwwroot/trainer-saas/backend`
-- API running directory → `/public`
-- Frontend site root → `/www/wwwroot/app.yourdomain.com` (copy of `frontend/dist`)
+```text
+/www/wwwroot/trainer-saas/
+  backend/          # Laravel — site document root = backend/public
+  frontend/         # build SPA, then copy dist into backend/public
+```
 
-### Option B — Upload ZIP via aaPanel File Manager
+In aaPanel → site → **Settings → Website directory**:
 
-Upload and extract `backend` into the API site path, and later upload `frontend/dist` into the app site path.
+1. Set site root to `/www/wwwroot/trainer-saas/backend`
+2. Set **running directory** to `/public`
+3. Do **not** enable “anti-cross-site” in a way that blocks the SPA assets you will place in `public`
 
 ---
 
@@ -210,14 +181,14 @@ cp .env.example .env
 nano .env
 ```
 
-Production `.env` example:
+Production `.env` (same domain):
 
 ```env
 APP_NAME="Trainer SaaS"
 APP_ENV=production
 APP_KEY=
 APP_DEBUG=false
-APP_URL=https://api.yourdomain.com
+APP_URL=https://yourdomain.com
 
 APP_LOCALE=en
 APP_FALLBACK_LOCALE=en
@@ -256,8 +227,8 @@ MAIL_ENCRYPTION=tls
 MAIL_FROM_ADDRESS="noreply@yourdomain.com"
 MAIL_FROM_NAME="${APP_NAME}"
 
-FRONTEND_URL=https://app.yourdomain.com
-SANCTUM_STATEFUL_DOMAINS=app.yourdomain.com
+FRONTEND_URL=https://yourdomain.com
+SANCTUM_STATEFUL_DOMAINS=yourdomain.com,www.yourdomain.com
 ```
 
 Install dependencies and bootstrap:
@@ -283,34 +254,9 @@ chmod -R 775 /www/wwwroot/trainer-saas/backend/storage
 chmod -R 775 /www/wwwroot/trainer-saas/backend/bootstrap/cache
 ```
 
-### Laravel Nginx rewrite (API site)
-
-In aaPanel → API site → **Settings → Config file**, ensure the PHP location uses Laravel’s front controller. Typical snippet inside the `server` block:
-
-```nginx
-location / {
-    try_files $uri $uri/ /index.php?$query_string;
-}
-
-location ~ \.php$ {
-    include enable-php-83.conf;
-    # or aaPanel's generated PHP handler — keep the panel default and only fix try_files if needed
-}
-```
-
-Deny direct access to sensitive paths:
-
-```nginx
-location ~ /\.(?!well-known).* {
-    deny all;
-}
-```
-
-Reload Nginx from aaPanel after edits.
-
 ---
 
-## 8. Build and deploy the frontend
+## 8. Build frontend into Laravel `public`
 
 ```bash
 cd /www/wwwroot/trainer-saas/frontend
@@ -318,47 +264,90 @@ cp .env.example .env
 nano .env
 ```
 
-Set:
+Same-domain API URL:
 
 ```env
-VITE_API_URL=https://api.yourdomain.com/api
+VITE_API_URL=https://yourdomain.com/api
 ```
 
-Build:
+Build and copy into Laravel public (keep `index.php`):
 
 ```bash
 npm ci
 npm run build
+
+# Copy SPA files next to Laravel's index.php
+cp -r dist/* /www/wwwroot/trainer-saas/backend/public/
+chown -R www:www /www/wwwroot/trainer-saas/backend/public
 ```
 
-Copy build output to the frontend site root:
+After copy, `backend/public` should contain both:
 
-```bash
-rm -rf /www/wwwroot/app.yourdomain.com/*
-cp -r dist/* /www/wwwroot/app.yourdomain.com/
-chown -R www:www /www/wwwroot/app.yourdomain.com
-```
+| Path | Role |
+|------|------|
+| `index.php` | Laravel entry (API) |
+| `index.html` | React SPA entry |
+| `assets/` | Vite JS/CSS |
+| `storage` | symlink from `php artisan storage:link` |
 
-### SPA rewrite (frontend site)
-
-aaPanel → frontend site → **Settings → Config file**, add:
-
-```nginx
-location / {
-    try_files $uri $uri/ /index.html;
-}
-```
-
-This is required so React Router deep links work.
+> Never overwrite `index.php` or `storage`. Re-copying `dist/*` is fine; it only adds/updates SPA files.
 
 ---
 
-## 9. SSL certificates
+## 9. Nginx config (same domain)
 
-For each site (`app` and `api`):
+aaPanel → site → **Settings → Config file**.
+
+Keep aaPanel’s PHP handler (`include enable-php-83.conf;` or the panel’s generated block). Replace the main `location /` handling so:
+
+- `/api` → Laravel `index.php`
+- `/storage` → uploaded files
+- everything else → SPA `index.html`
+
+Example inside the `server { ... }` block:
+
+```nginx
+# Laravel API
+location ^~ /api {
+    try_files $uri $uri/ /index.php?$query_string;
+}
+
+# Public storage (logos, avatars)
+location ^~ /storage {
+    try_files $uri $uri/ =404;
+}
+
+# React SPA (deep links)
+location / {
+    try_files $uri $uri/ /index.html;
+}
+
+# PHP (keep aaPanel default — example only)
+location ~ \.php$ {
+    try_files $uri =404;
+    include enable-php-83.conf;
+}
+
+# Hide dotfiles
+location ~ /\.(?!well-known).* {
+    deny all;
+}
+```
+
+Important:
+
+1. The `/api` block must reach PHP (`index.php`), not `index.html`.
+2. The SPA block must fall back to `/index.html` (not Laravel).
+3. Reload Nginx after saving.
+
+If aaPanel regenerates config and wipes customs, re-apply these `location` blocks, or put them in the site’s **custom Nginx config** include if your panel version supports it.
+
+---
+
+## 10. SSL certificate
 
 1. aaPanel → site → **SSL**
-2. Use **Let’s Encrypt**
+2. Use **Let’s Encrypt** for `yourdomain.com` (and `www` if used)
 3. Issue certificate
 4. Enable **Force HTTPS**
 
@@ -366,7 +355,7 @@ Wait until DNS A records have propagated before requesting certificates.
 
 ---
 
-## 10. Queue worker (Supervisor)
+## 11. Queue worker (Supervisor)
 
 Notifications and background jobs need a worker.
 
@@ -407,7 +396,7 @@ supervisorctl start trainer-queue:*
 
 ---
 
-## 11. Laravel scheduler (cron)
+## 12. Laravel scheduler (cron)
 
 aaPanel → **Cron** → **Add**:
 
@@ -425,12 +414,12 @@ This runs subscription expiry / low-session alerts defined in the app.
 
 ---
 
-## 12. Verify deployment
+## 13. Verify deployment
 
-1. Open `https://api.yourdomain.com/api` — expect Laravel JSON / route response (not 500).
-2. Open `https://app.yourdomain.com` — SPA loads.
-3. Login with a seeded account (only if you ran seeders), or register a new organization.
-4. Confirm API calls from the browser Network tab go to `https://api.yourdomain.com/api/...`.
+1. Open `https://yourdomain.com` — SPA loads.
+2. Open `https://yourdomain.com/api` — Laravel API response (not the React HTML page).
+3. Login / register and confirm Network calls go to `https://yourdomain.com/api/...`.
+4. Refresh a deep link (e.g. `/attendance`) — should not 404.
 5. Check `backend/storage/logs/laravel.log` if something fails.
 
 Demo accounts (only after `db:seed`): password `Password123!`
@@ -442,7 +431,7 @@ Demo accounts (only after `db:seed`): password `Password123!`
 
 ---
 
-## 13. Updates / redeploy
+## 14. Updates / redeploy
 
 ```bash
 cd /www/wwwroot/trainer-saas
@@ -457,23 +446,23 @@ php artisan route:cache
 php artisan view:cache
 php artisan queue:restart
 
-# Frontend
+# Frontend → same public folder
 cd ../frontend
-# confirm .env still has production VITE_API_URL
+# confirm .env: VITE_API_URL=https://yourdomain.com/api
 npm ci
 npm run build
-rm -rf /www/wwwroot/app.yourdomain.com/*
-cp -r dist/* /www/wwwroot/app.yourdomain.com/
-chown -R www:www /www/wwwroot/app.yourdomain.com
+cp -r dist/* /www/wwwroot/trainer-saas/backend/public/
+chown -R www:www /www/wwwroot/trainer-saas/backend/public
 ```
 
 ---
 
-## 14. Production checklist
+## 15. Production checklist
 
 - [ ] `APP_DEBUG=false`, strong `APP_KEY`
-- [ ] HTTPS on both domains + Force HTTPS
-- [ ] `FRONTEND_URL` and CORS match the real app domain
+- [ ] HTTPS + Force HTTPS on the single domain
+- [ ] `APP_URL`, `FRONTEND_URL`, and `VITE_API_URL` all use the same domain
+- [ ] Nginx routes `/api` to PHP and `/` to `index.html`
 - [ ] MySQL backups enabled in aaPanel (daily)
 - [ ] Queue worker running and auto-restarting
 - [ ] Scheduler cron every minute
@@ -489,14 +478,45 @@ chown -R www:www /www/wwwroot/app.yourdomain.com
 
 | Problem | Fix |
 |---------|-----|
-| 500 on API | Check `storage/logs/laravel.log`, run `php artisan config:clear` temporarily, confirm DB credentials |
-| 404 on API routes | Running directory must be `/public`; Nginx `try_files` must hit `index.php` |
+| `/api` returns React HTML | Nginx is sending `/api` to `index.html` — fix the `/api` → `index.php` location |
+| SPA deep link 404 | Add `try_files $uri $uri/ /index.html` for `/` |
+| 500 on API | Check `storage/logs/laravel.log`, DB credentials, `php artisan config:clear` temporarily |
 | Frontend blank / wrong API host | Rebuild after fixing `VITE_API_URL` (Vite bakes env at build time) |
-| CORS errors | Set `FRONTEND_URL=https://app.yourdomain.com` and clear config cache |
-| SPA deep link 404 | Add `try_files ... /index.html` on the frontend Nginx site |
+| CORS errors | Same domain usually avoids this; still set `FRONTEND_URL=https://yourdomain.com` and clear config cache |
 | Uploads fail | Fix `storage` permissions + `php artisan storage:link` |
 | Jobs never run | Start Supervisor queue worker; check failed jobs table |
-| SSL fail | Confirm DNS A records point to Contabo IP; wait for propagation |
+| SSL fail | Confirm DNS A record points to Contabo IP; wait for propagation |
+| `index.php` missing after deploy | You overwrote `public/` incorrectly — restore Laravel `public/index.php` from git |
+
+---
+
+## Alternative: two subdomains
+
+If you prefer split hosts:
+
+| Purpose | Example |
+|---------|---------|
+| Frontend | `https://app.yourdomain.com` |
+| API | `https://api.yourdomain.com` |
+
+1. Create **two** aaPanel sites.
+2. API site root → `/www/wwwroot/trainer-saas/backend`, running directory `/public`, Laravel `try_files` → `index.php`.
+3. App site root → copy of `frontend/dist`, SPA `try_files` → `index.html`.
+4. Env:
+
+```env
+# backend/.env
+APP_URL=https://api.yourdomain.com
+FRONTEND_URL=https://app.yourdomain.com
+SANCTUM_STATEFUL_DOMAINS=app.yourdomain.com
+
+# frontend/.env (before build)
+VITE_API_URL=https://api.yourdomain.com/api
+```
+
+5. Issue SSL for both domains.
+
+Same-domain is simpler for Contabo + aaPanel; use subdomains only if you need separate scaling or CDN rules.
 
 ---
 
