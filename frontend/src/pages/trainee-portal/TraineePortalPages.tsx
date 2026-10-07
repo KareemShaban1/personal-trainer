@@ -6,9 +6,15 @@ import { formatCurrency, formatDate, fullName } from '@/lib/utils'
 import type { Attendance, Paginated, ProgressRecord, Subscription, Trainee } from '@/types'
 import { PageHeader } from '@/components/common/page-header'
 import { EmptyBlock, ErrorBlock, LoadingBlock } from '@/components/common/query-state'
+import {
+  AttendanceHistoryList,
+  AttendanceSummaryCards,
+} from '@/components/attendance/attendance-history'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/contexts/auth-context'
+import { useLocaleLayout } from '@/hooks/use-locale-layout'
+import { cn } from '@/lib/utils'
 
 function useMyTrainee() {
   return useQuery({
@@ -108,26 +114,34 @@ export function TraineeSubscriptionPage() {
 
 export function TraineeAttendancePage() {
   const { t } = useTranslation()
+  const { dir, textAlign } = useLocaleLayout()
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['my-attendance'],
-    queryFn: async () => (await api.get<Paginated<Attendance>>('/attendance')).data.data,
+    queryFn: async () =>
+      (
+        await api.get<Paginated<Attendance>>('/attendance', {
+          params: { per_page: 100 },
+        })
+      ).data.data,
   })
 
   if (isLoading) return <LoadingBlock />
   if (isError) return <ErrorBlock onRetry={() => void refetch()} />
 
+  const records = data ?? []
+
   return (
-    <div>
-      <PageHeader title={t('nav.myAttendance')} />
-      {!data?.length ? <EmptyBlock title={t('attendance.empty')} /> : null}
-      <div className="space-y-2">
-        {data?.map((row) => (
-          <div key={row.id} className="flex justify-between rounded-xl border bg-white px-3 py-2">
-            <span>{formatDate(row.attendance_date)}</span>
-            <Badge>{row.status}</Badge>
-          </div>
-        ))}
-      </div>
+    <div dir={dir} className={cn('space-y-5', textAlign)}>
+      <PageHeader
+        title={t('nav.myAttendance')}
+        description={t('attendance.myHistorySubtitle')}
+      />
+      {records.length ? <AttendanceSummaryCards records={records} /> : null}
+      <AttendanceHistoryList
+        records={records}
+        emptyTitle={t('attendance.empty')}
+        emptyDescription={t('attendance.emptyDescription')}
+      />
     </div>
   )
 }

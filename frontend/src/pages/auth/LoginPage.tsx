@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
-import { Briefcase, Dumbbell, Eye, EyeOff, Loader2, Phone, Sparkles } from 'lucide-react'
+import { Dumbbell, Eye, EyeOff, GraduationCap, Loader2, Sparkles, UserCog } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '@/contexts/auth-context'
 import { homePathForRoles } from '@/lib/roles'
@@ -131,11 +131,11 @@ export function LoginPage() {
             <Tabs value={tab} onValueChange={setTab}>
               <TabsList className="grid h-auto w-full grid-cols-2 gap-1 bg-brand-50 p-1.5">
                 <TabsTrigger value="staff" className="gap-2 py-2.5 data-[state=active]:bg-brand-700 data-[state=active]:text-white">
-                  <Briefcase className="h-3.5 w-3.5" />
+                  <UserCog className="h-3.5 w-3.5" />
                   {t('auth.staffTab')}
                 </TabsTrigger>
                 <TabsTrigger value="portal" className="gap-2 py-2.5 data-[state=active]:bg-brand-700 data-[state=active]:text-white">
-                  <Phone className="h-3.5 w-3.5" />
+                  <GraduationCap className="h-3.5 w-3.5" />
                   {t('auth.portalTab')}
                 </TabsTrigger>
               </TabsList>
@@ -264,6 +264,16 @@ export function LoginPage() {
                 onClick={() => toast.dismiss()}
               >
                 {t('auth.register')}
+              </Link>
+            </p>
+
+            <p className="mt-3 text-center text-sm text-slate-500">
+              <Link
+                to="/#how-to-use"
+                className="font-semibold text-brand-700 transition hover:text-brand-900 hover:underline"
+                onClick={() => toast.dismiss()}
+              >
+                {t('landing.navHowTo')}
               </Link>
             </p>
           </div>

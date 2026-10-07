@@ -17,17 +17,19 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useAuth } from '@/contexts/auth-context'
+import { useLocaleLayout } from '@/hooks/use-locale-layout'
 import { cn } from '@/lib/utils'
 
 export function AppShell() {
   const { t } = useTranslation()
   const { user, logout, isStaff, hasRole } = useAuth()
+  const { dir, textAlign } = useLocaleLayout()
   const navigate = useNavigate()
   const [mobileOpen, setMobileOpen] = useState(false)
   const initials = `${user?.first_name?.[0] ?? ''}${user?.last_name?.[0] ?? ''}`.toUpperCase() || 'U'
 
   return (
-    <div className="min-h-screen lg:grid lg:grid-cols-[260px_1fr]">
+    <div dir={dir} className={cn('min-h-screen lg:grid lg:grid-cols-[260px_1fr]', textAlign)}>
       <div className="hidden lg:block lg:sticky lg:top-0 lg:h-screen">
         <Sidebar />
       </div>
@@ -111,7 +113,7 @@ export function AppShell() {
           </div>
         </header>
 
-        <main className="page-enter flex-1 px-4 py-5 pb-24 sm:px-6 lg:px-8 lg:pb-5">
+        <main dir={dir} className={cn('page-enter flex-1 px-4 py-5 pb-24 sm:px-6 lg:px-8 lg:pb-5', textAlign)}>
           <Outlet />
         </main>
 

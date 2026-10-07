@@ -146,6 +146,11 @@ export function RegisterPage() {
                 {t('auth.login')}
               </Link>
             </p>
+            <p className="mt-3 text-center text-sm text-slate-500">
+              <Link to="/#how-to-use" className="font-semibold text-brand-700 hover:underline">
+                {t('landing.navHowTo')}
+              </Link>
+            </p>
           </CardContent>
         </Card>
       </div>

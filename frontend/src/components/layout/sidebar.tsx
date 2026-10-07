@@ -52,6 +52,7 @@ function traineeNav(): NavItem[] {
     { to: '/portal', labelKey: 'nav.myDashboard', icon: LayoutDashboard },
     { to: '/portal/subscription', labelKey: 'nav.mySubscription', icon: CreditCard },
     { to: '/portal/attendance', labelKey: 'nav.myAttendance', icon: ClipboardList },
+    { to: '/portal/check-in', labelKey: 'nav.checkIn', icon: ScanLine },
     { to: '/portal/progress', labelKey: 'nav.myProgress', icon: Activity },
     { to: '/portal/qr', labelKey: 'nav.myQr', icon: QrCode },
     { to: '/profile', labelKey: 'nav.profile', icon: UserRound },

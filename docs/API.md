@@ -57,8 +57,8 @@ Login body examples:
 | Reports | `GET /reports/summary\|attendance\|subscriptions\|revenue`, `GET /reports/export` |
 | Search | `GET /search?q=` |
 | Profile | `GET/PUT /profile` |
-| Super Admin | `GET /super-admin/organizations`, `GET .../{id}`, `PATCH .../status`, `GET/PUT /super-admin/appearance` |
-| System | `GET /system/appearance` (public theme + fonts) |
+| Super Admin | `GET /super-admin/organizations`, `GET .../{id}`, `PATCH .../status`, `GET/PUT /super-admin/appearance`, `POST/DELETE /super-admin/appearance/pwa-icon` |
+| System | `GET /system/appearance` (public theme, fonts, PWA branding) |
 
 ## Error shape
 

@@ -102,4 +102,6 @@ Route::middleware(['auth:sanctum'])->prefix('super-admin')->group(function () {
     Route::patch('organizations/{organization}/status', [SuperAdminOrganizationController::class, 'updateStatus']);
     Route::get('appearance', [SystemAppearanceController::class, 'show']);
     Route::put('appearance', [SystemAppearanceController::class, 'update']);
+    Route::post('appearance/pwa-icon', [SystemAppearanceController::class, 'uploadPwaIcon']);
+    Route::delete('appearance/pwa-icon', [SystemAppearanceController::class, 'clearPwaIcon']);
 });

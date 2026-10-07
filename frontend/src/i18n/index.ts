@@ -4,6 +4,12 @@ import LanguageDetector from 'i18next-browser-languagedetector'
 import en from '@/i18n/locales/en.json'
 import ar from '@/i18n/locales/ar.json'
 
+export function applyDocumentDirection(lng: string) {
+  const isAr = (lng || 'en').toLowerCase().startsWith('ar')
+  document.documentElement.lang = isAr ? 'ar' : 'en'
+  document.documentElement.dir = isAr ? 'rtl' : 'ltr'
+}
+
 void i18n
   .use(LanguageDetector)
   .use(initReactI18next)
@@ -19,12 +25,9 @@ void i18n
       caches: ['localStorage'],
     },
   })
-
-export function applyDocumentDirection(lng: string) {
-  const dir = lng.startsWith('ar') ? 'rtl' : 'ltr'
-  document.documentElement.lang = lng.startsWith('ar') ? 'ar' : 'en'
-  document.documentElement.dir = dir
-}
+  .then(() => {
+    applyDocumentDirection(i18n.language || 'en')
+  })
 
 applyDocumentDirection(i18n.language || 'en')
 i18n.on('languageChanged', applyDocumentDirection)

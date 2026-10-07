@@ -6,6 +6,7 @@ import { homePathForRoles, PARENT_ROLES, STAFF_ROLES, SUPER_ADMIN_ROLES, TRAINEE
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { RegisterPage } from '@/pages/auth/RegisterPage'
 import { SuperAdminLoginPage } from '@/pages/auth/SuperAdminLoginPage'
+import { LandingPage } from '@/pages/landing/LandingPage'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { TraineesPage } from '@/pages/trainees/TraineesPage'
 import { TraineeFormPage } from '@/pages/trainees/TraineeFormPage'
@@ -29,6 +30,7 @@ import {
   TraineeQrPage,
   TraineeSubscriptionPage,
 } from '@/pages/trainee-portal/TraineePortalPages'
+import { TraineeCheckInPage } from '@/pages/trainee-portal/TraineeCheckInPage'
 import {
   ParentAttendancePage,
   ParentChildrenPage,
@@ -49,6 +51,7 @@ export function AppRoutes() {
   return (
     <Routes>
       <Route element={<GuestRoute />}>
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/super-admin/login" element={<SuperAdminLoginPage />} />
@@ -56,7 +59,7 @@ export function AppRoutes() {
 
       <Route element={<ProtectedRoute />}>
         <Route element={<AppShell />}>
-          <Route path="/" element={<HomeRedirect />} />
+          <Route path="/app" element={<HomeRedirect />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/notifications" element={<NotificationsPage />} />
 
@@ -87,6 +90,7 @@ export function AppRoutes() {
             <Route path="/portal/attendance" element={<TraineeAttendancePage />} />
             <Route path="/portal/progress" element={<TraineeProgressPage />} />
             <Route path="/portal/qr" element={<TraineeQrPage />} />
+            <Route path="/portal/check-in" element={<TraineeCheckInPage />} />
           </Route>
 
           <Route element={<ProtectedRoute roles={PARENT_ROLES} />}>

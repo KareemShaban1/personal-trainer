@@ -18,10 +18,31 @@ export function formatCurrency(amount: number | string | null | undefined, curre
   }
 }
 
-export function formatDate(value?: string | null) {
+export function formatDate(value?: string | null, locale?: string) {
   if (!value) return '—'
   try {
-    return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(new Date(value))
+    return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(value))
+  } catch {
+    return value
+  }
+}
+
+export function formatDateTime(value?: string | null, locale?: string) {
+  if (!value) return '—'
+  try {
+    return new Intl.DateTimeFormat(locale, {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(new Date(value))
+  } catch {
+    return value
+  }
+}
+
+export function formatTime(value?: string | null, locale?: string) {
+  if (!value) return '—'
+  try {
+    return new Intl.DateTimeFormat(locale, { timeStyle: 'short' }).format(new Date(value))
   } catch {
     return value
   }

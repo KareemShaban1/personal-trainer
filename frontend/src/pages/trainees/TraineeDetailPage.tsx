@@ -3,17 +3,23 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { QRCodeSVG } from 'qrcode.react'
 import { api } from '@/lib/api'
-import { formatDate, formatCurrency, fullName } from '@/lib/utils'
+import { cn, formatCurrency, formatDate, fullName } from '@/lib/utils'
 import type { Attendance, Note, Paginated, ProgressRecord, Trainee } from '@/types'
 import { PageHeader } from '@/components/common/page-header'
 import { EmptyBlock, ErrorBlock, LoadingBlock } from '@/components/common/query-state'
+import {
+  AttendanceHistoryList,
+  AttendanceSummaryCards,
+} from '@/components/attendance/attendance-history'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useLocaleLayout } from '@/hooks/use-locale-layout'
 
 export function TraineeDetailPage() {
   const { t } = useTranslation()
+  const { dir, textAlign, flexRow, isRtl, locale } = useLocaleLayout()
   const { id } = useParams()
 
   const traineeQuery = useQuery({
@@ -29,7 +35,7 @@ export function TraineeDetailPage() {
     enabled: Boolean(id),
     queryFn: async () => {
       const { data } = await api.get<Paginated<Attendance>>('/attendance', {
-        params: { trainee_id: id },
+        params: { trainee_id: id, per_page: 100 },
       })
       return data.data
     },
@@ -65,9 +71,13 @@ export function TraineeDetailPage() {
     return <ErrorBlock onRetry={() => void traineeQuery.refetch()} />
 
   const trainee = traineeQuery.data
+  const alignStyle = {
+    direction: dir,
+    textAlign: (isRtl ? 'right' : 'left') as 'right' | 'left',
+  }
 
   return (
-    <div>
+    <div dir={dir} style={alignStyle} className={cn('w-full', textAlign)}>
       <PageHeader
         title={fullName(trainee.user)}
         description={t('trainees.detail')}
@@ -85,50 +95,73 @@ export function TraineeDetailPage() {
 
       <div className="mb-4 grid gap-4 md:grid-cols-3">
         <Card>
-          <CardContent className="space-y-2 p-5 text-sm">
-            <p><span className="text-slate-500">{t('app.phone')}:</span> {trainee.user?.phone || '—'}</p>
-            <p><span className="text-slate-500">{t('app.email')}:</span> {trainee.user?.email || '—'}</p>
-            <p><span className="text-slate-500">{t('trainees.code')}:</span> {trainee.code || '—'}</p>
-            <Badge variant={trainee.status === 'active' ? 'success' : 'secondary'}>
-              {trainee.status || '—'}
-            </Badge>
+          <CardContent className={cn('space-y-2 p-5 text-sm', textAlign)} style={alignStyle}>
+            <p>
+              <span className="text-slate-500">{t('app.phone')}: </span>
+              {trainee.user?.phone || '—'}
+            </p>
+            <p>
+              <span className="text-slate-500">{t('app.email')}: </span>
+              {trainee.user?.email || '—'}
+            </p>
+            <p>
+              <span className="text-slate-500">{t('trainees.code')}: </span>
+              {trainee.code || '—'}
+            </p>
+            <div className={cn('flex', isRtl ? 'justify-end' : 'justify-start')}>
+              <Badge variant={trainee.status === 'active' ? 'success' : 'secondary'}>
+                {trainee.status === 'active' ? t('app.active') : trainee.status || '—'}
+              </Badge>
+            </div>
           </CardContent>
         </Card>
+
         <Card className="md:col-span-2">
-          <CardHeader>
+          <CardHeader className={textAlign} style={alignStyle}>
             <CardTitle>{t('trainees.qr')}</CardTitle>
           </CardHeader>
-          <CardContent className="flex items-center gap-4">
+          <CardContent
+            className={cn('flex items-center gap-4 p-5 pt-0', flexRow)}
+            style={alignStyle}
+          >
             <div className="rounded-xl bg-white p-3 ring-1 ring-border-subtle">
               <QRCodeSVG value={`trainee:${trainee.id}:${trainee.code || trainee.id}`} size={120} />
             </div>
-            <p className="text-sm text-slate-500">{t('traineePortal.showQr')}</p>
+            <p className={cn('text-sm text-slate-500', textAlign)}>{t('traineePortal.showQr')}</p>
           </CardContent>
         </Card>
       </div>
 
-      <Tabs defaultValue="subscriptions">
-        <TabsList className="flex h-auto flex-wrap">
+      <Tabs defaultValue="subscriptions" dir={dir}>
+        <TabsList className={cn('flex h-auto w-full flex-wrap', isRtl ? 'justify-end' : 'justify-start')}>
           <TabsTrigger value="subscriptions">{t('trainees.subscriptions')}</TabsTrigger>
           <TabsTrigger value="attendance">{t('trainees.attendanceSummary')}</TabsTrigger>
           <TabsTrigger value="progress">{t('trainees.progress')}</TabsTrigger>
           <TabsTrigger value="notes">{t('trainees.notes')}</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="subscriptions" className="space-y-2">
+        <TabsContent value="subscriptions" className="space-y-2" style={alignStyle}>
           {trainee.subscriptions?.length ? (
             trainee.subscriptions.map((sub) => (
               <Card key={sub.id}>
-                <CardContent className="flex flex-wrap items-center justify-between gap-2 p-4">
-                  <div>
+                <CardContent
+                  className={cn(
+                    'flex flex-wrap items-center gap-3 p-4',
+                    isRtl ? 'flex-row-reverse justify-between' : 'justify-between',
+                  )}
+                  style={alignStyle}
+                >
+                  <div className={cn('min-w-0', textAlign)}>
                     <p className="font-semibold">{sub.package?.name}</p>
                     <p className="text-xs text-slate-500">
-                      {formatDate(sub.started_at)} → {formatDate(sub.ends_at)}
+                      {formatDate(sub.started_at, locale)} → {formatDate(sub.ends_at, locale)}
                     </p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge>{sub.status}</Badge>
-                    <Badge variant="warning">{sub.remaining_sessions ?? 0}</Badge>
+                  <div className={cn('flex items-center gap-2', flexRow)}>
+                    <Badge>{sub.status || '—'}</Badge>
+                    <Badge variant="warning">
+                      {sub.remaining_sessions ?? 0} {t('subscriptions.remaining')}
+                    </Badge>
                     <span className="text-sm">
                       {formatCurrency(sub.package?.price, sub.package?.currency)}
                     </span>
@@ -141,55 +174,56 @@ export function TraineeDetailPage() {
           )}
         </TabsContent>
 
-        <TabsContent value="attendance">
+        <TabsContent value="attendance" className="space-y-5" style={alignStyle}>
           {attendanceQuery.isLoading ? <LoadingBlock /> : null}
-          {attendanceQuery.data?.length ? (
-            <div className="space-y-2">
-              {attendanceQuery.data.map((row) => (
-                <div key={row.id} className="flex justify-between rounded-xl border bg-white px-3 py-2">
-                  <span>{formatDate(row.attendance_date)}</span>
-                  <Badge>{row.status}</Badge>
-                </div>
-              ))}
-            </div>
-          ) : (
-            !attendanceQuery.isLoading && <EmptyBlock title={t('attendance.empty')} />
-          )}
+          {!attendanceQuery.isLoading ? (
+            <>
+              <div style={alignStyle} className={textAlign}>
+                <h3 className="text-base font-semibold text-brand-950">{t('attendance.historyTitle')}</h3>
+                <p className="mt-1 text-sm text-slate-500">{t('attendance.traineeHistorySubtitle')}</p>
+              </div>
+              {attendanceQuery.data?.length ? (
+                <AttendanceSummaryCards records={attendanceQuery.data} />
+              ) : null}
+              <AttendanceHistoryList
+                records={attendanceQuery.data ?? []}
+                emptyTitle={t('attendance.empty')}
+                emptyDescription={t('attendance.emptyDescription')}
+              />
+            </>
+          ) : null}
         </TabsContent>
 
-        <TabsContent value="progress">
+        <TabsContent value="progress" className="space-y-2" style={alignStyle}>
           {progressQuery.isLoading ? <LoadingBlock /> : null}
           {progressQuery.data?.length ? (
-            <div className="space-y-2">
-              {progressQuery.data.map((row) => (
-                <Card key={row.id}>
-                  <CardContent className="p-4">
-                    <p className="text-sm font-semibold">{formatDate(row.recorded_at)}</p>
-                    <p className="text-sm text-slate-600">{row.notes || '—'}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            progressQuery.data.map((row) => (
+              <Card key={row.id}>
+                <CardContent className={cn('p-4', textAlign)} style={alignStyle}>
+                  <p className="text-sm font-semibold">{formatDate(row.recorded_at, locale)}</p>
+                  <p className="text-sm text-slate-600">{row.notes || '—'}</p>
+                </CardContent>
+              </Card>
+            ))
           ) : (
             !progressQuery.isLoading && <EmptyBlock title={t('progress.empty')} />
           )}
         </TabsContent>
 
-        <TabsContent value="notes">
+        <TabsContent value="notes" className="space-y-2" style={alignStyle}>
           {notesQuery.isLoading ? <LoadingBlock /> : null}
           {notesQuery.data?.length ? (
-            <div className="space-y-2">
-              {notesQuery.data.map((note) => (
-                <Card key={note.id}>
-                  <CardContent className="p-4">
-                    <p className="text-sm">{note.body}</p>
-                    <p className="mt-1 text-xs text-slate-500">
-                      {note.visibility} · {formatDate(note.created_at)}
-                    </p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            notesQuery.data.map((note) => (
+              <Card key={note.id}>
+                <CardContent className={cn('p-4', textAlign)} style={alignStyle}>
+                  <p className="text-sm">{note.body}</p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    {t(`notes.${note.visibility}`, { defaultValue: note.visibility })} ·{' '}
+                    {formatDate(note.created_at, locale)}
+                  </p>
+                </CardContent>
+              </Card>
+            ))
           ) : (
             !notesQuery.isLoading && <EmptyBlock title={t('notes.empty')} />
           )}

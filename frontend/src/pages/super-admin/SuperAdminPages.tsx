@@ -9,6 +9,8 @@ import {
   CreditCard,
   Package,
   Palette,
+  Smartphone,
+  Upload,
   Users,
   UsersRound,
   UserRound,
@@ -316,7 +318,23 @@ export function SuperAdminAppearancePage() {
 
   const mutation = useMutation({
     mutationFn: async (values: SystemAppearance) => {
-      const { data } = await api.put<{ appearance: SystemAppearance }>('/super-admin/appearance', values)
+      const payload = {
+        brand_name: values.brand_name,
+        pwa_name: values.pwa_name,
+        pwa_short_name: values.pwa_short_name,
+        primary: values.primary,
+        primary_dark: values.primary_dark,
+        primary_light: values.primary_light,
+        accent: values.accent,
+        surface: values.surface,
+        ink: values.ink,
+        border: values.border,
+        font_sans: values.font_sans,
+        font_arabic: values.font_arabic,
+        font_size_base: values.font_size_base,
+        border_radius: values.border_radius,
+      }
+      const { data } = await api.put<{ appearance: SystemAppearance }>('/super-admin/appearance', payload)
       return data.appearance
     },
     onSuccess: async (appearance) => {
@@ -326,7 +344,42 @@ export function SuperAdminAppearancePage() {
     },
   })
 
+  const iconUpload = useMutation({
+    mutationFn: async (file: File) => {
+      const body = new FormData()
+      body.append('icon', file)
+      const { data } = await api.post<{ appearance: SystemAppearance }>(
+        '/super-admin/appearance/pwa-icon',
+        body,
+        { headers: { 'Content-Type': 'multipart/form-data' } },
+      )
+      return data.appearance
+    },
+    onSuccess: async (appearance) => {
+      form.reset({ ...DEFAULT_APPEARANCE, ...appearance })
+      applyAppearance(appearance)
+      toast.success(t('superAdmin.pwaIconSaved'))
+      await queryClient.invalidateQueries({ queryKey: ['system-appearance'] })
+    },
+  })
+
+  const iconClear = useMutation({
+    mutationFn: async () => {
+      const { data } = await api.delete<{ appearance: SystemAppearance }>(
+        '/super-admin/appearance/pwa-icon',
+      )
+      return data.appearance
+    },
+    onSuccess: async (appearance) => {
+      form.reset({ ...DEFAULT_APPEARANCE, ...appearance })
+      applyAppearance(appearance)
+      toast.success(t('superAdmin.pwaIconCleared'))
+      await queryClient.invalidateQueries({ queryKey: ['system-appearance'] })
+    },
+  })
+
   const watched = form.watch()
+  const iconPreview = watched.pwa_icon_url || '/pwa-192.png'
 
   if (query.isLoading) return <LoadingBlock />
   if (query.isError) return <ErrorBlock onRetry={() => void query.refetch()} />
@@ -353,6 +406,78 @@ export function SuperAdminAppearancePage() {
                 {...form.register('brand_name', { required: true, minLength: 2 })}
               />
               <p className="text-xs text-slate-500">{t('superAdmin.brandNameHint')}</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Smartphone className="h-4 w-4" />
+                {t('superAdmin.pwa')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="pwa_name">{t('superAdmin.pwaName')}</Label>
+                <Input
+                  id="pwa_name"
+                  className="h-11"
+                  placeholder={DEFAULT_APPEARANCE.pwa_name}
+                  {...form.register('pwa_name', { required: true, minLength: 2 })}
+                />
+                <p className="text-xs text-slate-500">{t('superAdmin.pwaNameHint')}</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="pwa_short_name">{t('superAdmin.pwaShortName')}</Label>
+                <Input
+                  id="pwa_short_name"
+                  className="h-11"
+                  maxLength={20}
+                  placeholder={DEFAULT_APPEARANCE.pwa_short_name}
+                  {...form.register('pwa_short_name', { required: true, minLength: 2, maxLength: 20 })}
+                />
+                <p className="text-xs text-slate-500">{t('superAdmin.pwaShortNameHint')}</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label>{t('superAdmin.pwaIcon')}</Label>
+                <div className="flex flex-wrap items-center gap-4">
+                  <img
+                    src={iconPreview}
+                    alt={t('superAdmin.pwaIcon')}
+                    className="h-16 w-16 rounded-2xl border border-border-subtle bg-white object-cover"
+                  />
+                  <div className="space-y-2">
+                    <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-border-subtle bg-white px-3 py-2 text-sm font-medium text-brand-800 transition hover:bg-brand-50">
+                      <Upload className="h-4 w-4" />
+                      {iconUpload.isPending ? t('app.loading') : t('superAdmin.uploadPwaIcon')}
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        className="hidden"
+                        disabled={iconUpload.isPending}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          if (file) iconUpload.mutate(file)
+                          e.target.value = ''
+                        }}
+                      />
+                    </label>
+                    {watched.pwa_icon_url ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={iconClear.isPending}
+                        onClick={() => iconClear.mutate()}
+                      >
+                        {t('superAdmin.clearPwaIcon')}
+                      </Button>
+                    ) : null}
+                    <p className="max-w-sm text-xs text-slate-500">{t('superAdmin.pwaIconHint')}</p>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
@@ -487,11 +612,19 @@ export function SuperAdminAppearancePage() {
                 }}
               >
                 <div
-                  className="mb-3 px-3 py-2 text-sm font-semibold text-white"
+                  className="mb-3 flex items-center gap-3 px-3 py-2 text-sm font-semibold text-white"
                   style={{ background: watched.primary, borderRadius: watched.border_radius }}
                 >
-                  {watched.brand_name || brandName}
+                  <img
+                    src={iconPreview}
+                    alt=""
+                    className="h-8 w-8 rounded-lg bg-white object-cover"
+                  />
+                  <span>{watched.pwa_name || watched.brand_name || brandName}</span>
                 </div>
+                <p className="mb-1 text-xs opacity-70">
+                  {t('superAdmin.pwaShortName')}: {watched.pwa_short_name || '—'}
+                </p>
                 <p className="mb-3 text-sm opacity-80">{t('superAdmin.previewBody')}</p>
                 <div className="flex gap-2">
                   <button
@@ -518,8 +651,16 @@ export function SuperAdminAppearancePage() {
                   type="button"
                   variant="outline"
                   onClick={() => {
-                    form.reset(DEFAULT_APPEARANCE)
-                    applyAppearance(DEFAULT_APPEARANCE)
+                    form.reset({
+                      ...DEFAULT_APPEARANCE,
+                      pwa_icon: watched.pwa_icon,
+                      pwa_icon_url: watched.pwa_icon_url,
+                    })
+                    applyAppearance({
+                      ...DEFAULT_APPEARANCE,
+                      pwa_icon: watched.pwa_icon,
+                      pwa_icon_url: watched.pwa_icon_url,
+                    })
                   }}
                 >
                   {t('superAdmin.resetDefaults')}

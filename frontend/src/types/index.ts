@@ -42,6 +42,10 @@ export interface Organization {
 
 export interface SystemAppearance {
   brand_name: string
+  pwa_name: string
+  pwa_short_name: string
+  pwa_icon?: string | null
+  pwa_icon_url?: string | null
   primary: string
   primary_dark: string
   primary_light: string

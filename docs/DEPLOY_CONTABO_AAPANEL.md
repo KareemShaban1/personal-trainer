@@ -71,14 +71,14 @@ Go to **App Store** and install:
 |------|-----------------|
 | **Nginx** | Latest stable |
 | **MySQL** | 8.0 |
-| **PHP** | **8.3** (required: Laravel 12 needs PHP ^8.2) |
+| **PHP** | **8.2** (Laravel 12 needs PHP ^8.2; this project targets 8.2) |
 | **phpMyAdmin** | Optional, for DB management |
 | **Supervisor** / **Process Manager** | For queue workers |
 | **Redis** | Optional but recommended for cache/queues |
 
-### PHP 8.3 extensions
+### PHP 8.2 extensions
 
-In **App Store → PHP 8.3 → Settings → Install extensions**, enable at least:
+In **App Store → PHP 8.2 → Settings → Install extensions**, enable at least:
 
 - `opcache`
 - `pdo_mysql` / `mysqli`
@@ -145,7 +145,7 @@ Save these credentials for `backend/.env`.
 |-------|-------|
 | Domain | `yourdomain.com` (+ `www.yourdomain.com` if used) |
 | Root | `/www/wwwroot/yourdomain.com` (temporary; you will point it at Laravel `public`) |
-| PHP | **PHP-83** |
+| PHP | **PHP-82** |
 | Database | Do **not** create another DB here if you already created one |
 
 ---
@@ -256,7 +256,9 @@ chmod -R 775 /www/wwwroot/trainer-saas/backend/bootstrap/cache
 
 ---
 
-## 8. Build frontend into Laravel `public`
+## 8. Build the frontend
+
+Keep the SPA in `frontend/dist` as the site root. Laravel stays in `backend/public`.
 
 ```bash
 cd /www/wwwroot/trainer-saas/frontend
@@ -270,77 +272,90 @@ Same-domain API URL:
 VITE_API_URL=https://yourdomain.com/api
 ```
 
-Build and copy into Laravel public (keep `index.php`):
+Build:
 
 ```bash
 npm ci
 npm run build
-
-# Copy SPA files next to Laravel's index.php
-cp -r dist/* /www/wwwroot/trainer-saas/backend/public/
-chown -R www:www /www/wwwroot/trainer-saas/backend/public
+chown -R www:www /www/wwwroot/trainer-saas/frontend/dist
 ```
 
-After copy, `backend/public` should contain both:
+Ensure Laravel storage is linked:
 
-| Path | Role |
-|------|------|
-| `index.php` | Laravel entry (API) |
-| `index.html` | React SPA entry |
-| `assets/` | Vite JS/CSS |
-| `storage` | symlink from `php artisan storage:link` |
-
-> Never overwrite `index.php` or `storage`. Re-copying `dist/*` is fine; it only adds/updates SPA files.
+```bash
+cd /www/wwwroot/trainer-saas/backend
+php artisan storage:link
+```
 
 ---
 
 ## 9. Nginx config (same domain)
 
-aaPanel → site → **Settings → Config file**.
+aaPanel site settings:
 
-Keep aaPanel’s PHP handler (`include enable-php-83.conf;` or the panel’s generated block). Replace the main `location /` handling so:
+| Setting | Value |
+|---------|-------|
+| Root | `/www/wwwroot/trainer-saas/frontend/dist` |
+| PHP | PHP-82 |
 
-- `/api` → Laravel `index.php`
-- `/storage` → uploaded files
-- everything else → SPA `index.html`
-
-Example inside the `server { ... }` block:
+**Critical:** when `root` is `frontend/dist`, this does **not** work:
 
 ```nginx
-# Laravel API
 location ^~ /api {
-    try_files $uri $uri/ /index.php?$query_string;
+    try_files $uri $uri/ /index.php?$query_string;  # looks for index.php inside frontend/dist → 404
+}
+```
+
+`/api` must call Laravel’s `backend/public/index.php` directly via FastCGI.
+
+In **Config file**, keep aaPanel SSL / well-known blocks, then use:
+
+```nginx
+# Laravel API → backend/public/index.php
+location ^~ /api {
+    include fastcgi_params;
+    fastcgi_pass unix:/tmp/php-cgi-82.sock;
+    fastcgi_param SCRIPT_FILENAME /www/wwwroot/trainer-saas/backend/public/index.php;
+    fastcgi_param DOCUMENT_ROOT /www/wwwroot/trainer-saas/backend/public;
+    fastcgi_param SCRIPT_NAME /index.php;
+    fastcgi_param REQUEST_URI $request_uri;
 }
 
-# Public storage (logos, avatars)
+# Public uploads
 location ^~ /storage {
+    alias /www/wwwroot/trainer-saas/backend/public/storage/;
     try_files $uri $uri/ =404;
+    access_log off;
 }
 
-# React SPA (deep links)
+# React SPA deep links
 location / {
     try_files $uri $uri/ /index.html;
 }
 
-# PHP (keep aaPanel default — example only)
-location ~ \.php$ {
-    try_files $uri =404;
-    include enable-php-83.conf;
+location ~ ^/(\.user.ini|\.htaccess|\.git|\.env|\.svn|\.project|LICENSE|README.md) {
+    return 404;
 }
 
-# Hide dotfiles
 location ~ /\.(?!well-known).* {
     deny all;
 }
 ```
 
-Important:
+Notes:
 
-1. The `/api` block must reach PHP (`index.php`), not `index.html`.
-2. The SPA block must fall back to `/index.html` (not Laravel).
-3. Reload Nginx after saving.
+1. Replace paths with yours (e.g. `/www/wwwroot/personal-trainer/...`).
+2. If `fastcgi_pass` fails, copy the socket from `/www/server/nginx/conf/enable-php-82.conf`.
+3. Do **not** add a second `location ~ \.php$` that also `include enable-php-82.conf;` for `/api` — that file is usually already a full `location` block.
+4. Reload Nginx after saving.
+5. Browser **404 (from service worker)** usually means Nginx returned 404 and the SW forwarded it — fix Nginx first, then hard-refresh / clear site data once.
 
-If aaPanel regenerates config and wipes customs, re-apply these `location` blocks, or put them in the site’s **custom Nginx config** include if your panel version supports it.
+Verify:
+
+```bash
+curl -i https://yourdomain.com/api/system/appearance
+# expect JSON 200, not HTML 404
+```
 
 ---
 

@@ -4,6 +4,10 @@ export const APPEARANCE_STORAGE_KEY = 'trainer_saas_appearance'
 
 export const DEFAULT_APPEARANCE: SystemAppearance = {
   brand_name: 'Trainer SaaS',
+  pwa_name: 'Trainer SaaS',
+  pwa_short_name: 'Trainer',
+  pwa_icon: null,
+  pwa_icon_url: null,
   primary: '#0f7473',
   primary_dark: '#0d5c5c',
   primary_light: '#3aadaa',
@@ -60,6 +64,7 @@ function brandScale(primary: string, dark: string, light: string) {
 }
 
 const FONT_LINK_ID = 'system-appearance-fonts'
+let manifestObjectUrl: string | null = null
 
 function loadGoogleFonts(sans: string, arabic: string) {
   const families = [sans, arabic]
@@ -76,6 +81,69 @@ function loadGoogleFonts(sans: string, arabic: string) {
     document.head.appendChild(link)
   }
   if (link.href !== href) link.href = href
+}
+
+function absoluteUrl(url: string) {
+  if (/^https?:\/\//i.test(url)) return url
+  return new URL(url, window.location.origin).href
+}
+
+function applyPwaManifest(theme: SystemAppearance) {
+  const name = theme.pwa_name?.trim() || theme.brand_name
+  const shortName = theme.pwa_short_name?.trim() || name
+  const customIcon = theme.pwa_icon_url?.trim()
+
+  const icons = customIcon
+    ? [
+        { src: absoluteUrl(customIcon), sizes: '192x192', type: 'image/png', purpose: 'any' },
+        { src: absoluteUrl(customIcon), sizes: '512x512', type: 'image/png', purpose: 'any' },
+        { src: absoluteUrl(customIcon), sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+      ]
+    : [
+        { src: absoluteUrl('/pwa-192.png'), sizes: '192x192', type: 'image/png', purpose: 'any' },
+        { src: absoluteUrl('/pwa-512.png'), sizes: '512x512', type: 'image/png', purpose: 'any' },
+        { src: absoluteUrl('/pwa-512.png'), sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+      ]
+
+  const manifest = {
+    name,
+    short_name: shortName,
+    description: 'Sports academy operations, simplified',
+    theme_color: theme.primary,
+    background_color: theme.surface,
+    display: 'standalone',
+    orientation: 'portrait-primary',
+    start_url: '/',
+    scope: '/',
+    lang: document.documentElement.lang || 'en',
+    icons,
+  }
+
+  const blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' })
+  const nextUrl = URL.createObjectURL(blob)
+
+  let link = document.querySelector('link[rel="manifest"]') as HTMLLinkElement | null
+  if (!link) {
+    link = document.createElement('link')
+    link.rel = 'manifest'
+    document.head.appendChild(link)
+  }
+
+  if (manifestObjectUrl) URL.revokeObjectURL(manifestObjectUrl)
+  manifestObjectUrl = nextUrl
+  link.href = nextUrl
+
+  const appleIcon = customIcon || '/apple-touch-icon.png'
+  let apple = document.querySelector('link[rel="apple-touch-icon"]') as HTMLLinkElement | null
+  if (!apple) {
+    apple = document.createElement('link')
+    apple.rel = 'apple-touch-icon'
+    document.head.appendChild(apple)
+  }
+  apple.href = customIcon ? absoluteUrl(customIcon) : appleIcon
+
+  const appleTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]')
+  if (appleTitle) appleTitle.setAttribute('content', shortName)
 }
 
 export function readCachedAppearance(): SystemAppearance | null {
@@ -127,10 +195,9 @@ export function applyAppearance(appearance: Partial<SystemAppearance>, options?:
 
   if (theme.brand_name) {
     document.title = `${theme.brand_name} — Sports Academy Platform`
-    const appleTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]')
-    if (appleTitle) appleTitle.setAttribute('content', theme.brand_name)
   }
 
+  applyPwaManifest(theme)
   loadGoogleFonts(theme.font_sans, theme.font_arabic)
 
   if (options?.persist !== false) {

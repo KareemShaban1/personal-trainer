@@ -62,6 +62,7 @@
     "myAttendance": "Attendance",
     "myProgress": "Progress",
     "myQr": "My QR",
+    "checkIn": "Check in",
     "children": "Children",
     "organizations": "Organizations",
     "stats": "Stats",
@@ -203,10 +204,29 @@
     "late": "Late",
     "excused": "Excused",
     "method": "Method",
+    "methods": {
+      "manual": "Manual",
+      "qr_scan": "Trainer QR scan",
+      "self_check_in": "Self check-in"
+    },
+    "date": "Date",
+    "checkInTime": "Check-in time",
+    "noCheckInTime": "Not recorded",
+    "location": "Location",
+    "openMap": "Open in maps",
     "locationRequired": "Waiting for location…",
     "scanSuccess": "Attendance recorded",
     "empty": "No attendance records",
-    "subscription": "Subscription"
+    "emptyDescription": "When sessions are marked, they will appear here with status, method, and time.",
+    "subscription": "Package / subscription",
+    "subscriptionId": "Subscription #{{id}}",
+    "remainingAfter": "{{count}} sessions remaining",
+    "totalRecords": "Total",
+    "attendanceRate": "Attendance rate",
+    "historyTitle": "Attendance history",
+    "historySubtitle": "Sessions, check-in method, time, and location",
+    "myHistorySubtitle": "Your session attendance with method, time, and notes",
+    "traineeHistorySubtitle": "Full attendance history for this trainee"
   },
   "progress": {
     "title": "Progress",
@@ -270,7 +290,15 @@
     "dashboard": "My dashboard",
     "welcome": "Keep training. Track your sessions and progress.",
     "myQr": "My QR code",
-    "showQr": "Show this QR at the academy gate"
+    "showQr": "Show this QR at the academy gate",
+    "checkInTitle": "Academy check-in",
+    "checkInSubtitle": "Scan the academy’s check-in QR shown by your trainer",
+    "startScan": "Start camera scan",
+    "orgQrToken": "Check-in code",
+    "orgQrPlaceholder": "Paste the academy QR token if needed",
+    "confirmCheckIn": "Check in now",
+    "checkInHint": "Ask your trainer to open Check-in QR, then scan it here. Location may be required by your academy.",
+    "checkInSuccess": "You are checked in"
   },
   "parentPortal": {
     "children": "My children",
@@ -296,11 +324,22 @@
     "activeSubscriptions": "Active subs",
     "trialEnds": "Trial ends",
     "appearance": "System appearance",
-    "appearanceSubtitle": "Control platform brand, colors, and typography",
+    "appearanceSubtitle": "Control platform brand, PWA install name/icon, colors, and typography",
     "appearanceSaved": "Appearance saved",
     "branding": "Branding",
     "brandName": "Brand name",
     "brandNameHint": "Shown in the sidebar, login screens, and browser tab.",
+    "pwa": "Installable app (PWA)",
+    "pwaName": "App install name",
+    "pwaNameHint": "Full name shown when installing / downloading the app.",
+    "pwaShortName": "Home screen name",
+    "pwaShortNameHint": "Short label under the icon on the phone home screen (max 20).",
+    "pwaIcon": "App icon",
+    "pwaIconHint": "PNG, JPG, or WebP. Prefer a square image at least 512×512.",
+    "uploadPwaIcon": "Upload icon",
+    "clearPwaIcon": "Use default icon",
+    "pwaIconSaved": "PWA icon updated",
+    "pwaIconCleared": "PWA icon reset to default",
     "colors": "Colors",
     "fonts": "Fonts",
     "primary": "Primary",
@@ -337,5 +376,80 @@
     "bank": "Bank transfer",
     "wallet": "Wallet",
     "other": "Other"
+  },
+  "landing": {
+    "navHowTo": "How to use",
+    "navLogin": "Sign in",
+    "navRegister": "Start free",
+    "heroTitle": "Run your academy with clarity",
+    "heroSubtitle": "Manage trainees, packages, attendance, and parent updates in one place — built for Egypt and MENA.",
+    "ctaLogin": "Sign in",
+    "ctaRegister": "Register your academy",
+    "ctaHowTo": "See how it works",
+    "howToTitle": "How to use the app",
+    "howToSubtitle": "Pick your role and follow the steps to get started.",
+    "trainer": "Trainer",
+    "trainee": "Trainee",
+    "parent": "Parent",
+    "step": "Step {{n}}",
+    "footerTagline": "Trainer SaaS — attendance, subscriptions, and progress for modern academies.",
+    "trainerSteps": [
+      {
+        "title": "Create your academy",
+        "body": "Register with your organization details, then sign in with your email and password."
+      },
+      {
+        "title": "Add packages and trainees",
+        "body": "Create training packages (sessions and price), register trainees, and link parents when needed."
+      },
+      {
+        "title": "Assign subscriptions",
+        "body": "Assign a package to a trainee. Remaining sessions update automatically — they are not edited by hand."
+      },
+      {
+        "title": "Record attendance",
+        "body": "Mark attendance manually or scan a trainee QR. Present check-ins deduct one session and can store location."
+      },
+      {
+        "title": "Track progress and reports",
+        "body": "Add progress notes, review dashboards, and export attendance or subscription reports anytime."
+      }
+    ],
+    "traineeSteps": [
+      {
+        "title": "Sign in with your phone",
+        "body": "Use the Trainee / Parent tab on the login page. Enter the phone number and password your academy gave you."
+      },
+      {
+        "title": "Check your subscription",
+        "body": "Open My Subscription to see your active package, remaining sessions, and expiry date."
+      },
+      {
+        "title": "View attendance and progress",
+        "body": "Review when you attended and any progress updates your trainer recorded."
+      },
+      {
+        "title": "Show your QR code",
+        "body": "Open My QR so your trainer can scan and mark you present quickly at the session."
+      }
+    ],
+    "parentSteps": [
+      {
+        "title": "Sign in with your phone",
+        "body": "Use the Trainee / Parent tab. Sign in with the phone number linked to your children’s profiles."
+      },
+      {
+        "title": "See your children",
+        "body": "Open Children to view each linked trainee, their packages, and remaining sessions."
+      },
+      {
+        "title": "Follow attendance",
+        "body": "Check Attendance to confirm when your child was present, late, or absent."
+      },
+      {
+        "title": "Monitor progress",
+        "body": "Open Progress to read trainer notes and skill updates for your children."
+      }
+    ]
   }
 }

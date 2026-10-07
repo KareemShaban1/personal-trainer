@@ -1,7 +1,7 @@
 import type { ComponentType } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Activity, BarChart3, Building2, ClipboardList, Home, Palette, UserRound, Users } from 'lucide-react'
+import { Activity, BarChart3, Building2, ClipboardList, Home, Palette, ScanLine, UserRound, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/contexts/auth-context'
 
@@ -16,7 +16,7 @@ function getBottomNavItems(role: 'super_admin' | 'trainee' | 'parent' | 'staff')
   if (role === 'trainee') {
     return [
       { to: '/portal', labelKey: 'nav.home', icon: Home, end: true },
-      { to: '/portal/progress', labelKey: 'nav.progress', icon: Activity },
+      { to: '/portal/check-in', labelKey: 'nav.checkIn', icon: ScanLine },
       { to: '/portal/attendance', labelKey: 'nav.attendance', icon: ClipboardList },
       { to: '/profile', labelKey: 'nav.profile', icon: UserRound },
     ]

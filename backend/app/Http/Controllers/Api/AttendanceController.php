@@ -33,7 +33,7 @@ class AttendanceController extends Controller
     {
         $this->authorize('viewAny', AttendanceRecord::class);
 
-        $query = AttendanceRecord::query()->with(['trainee.user', 'subscription']);
+        $query = AttendanceRecord::query()->with(['trainee.user', 'subscription.package']);
 
         if ($request->user()->hasRole(Role::Parent->value)) {
             $ids = $request->user()->parentProfile?->trainees()->pluck('trainees.id') ?? collect();
@@ -47,9 +47,19 @@ class AttendanceController extends Controller
             $query->whereDate('attendance_date', $request->string('date'));
         }
 
+        if ($request->filled('trainee_id')) {
+            $query->where('trainee_id', $request->integer('trainee_id'));
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->string('status'));
+        }
+
         $perPage = min(max((int) $request->integer('per_page', 30), 1), 200);
 
-        return AttendanceResource::collection($query->latest('attendance_date')->paginate($perPage))->response();
+        return AttendanceResource::collection(
+            $query->latest('attendance_date')->latest('id')->paginate($perPage)
+        )->response();
     }
 
     public function store(StoreAttendanceRequest $request): JsonResponse

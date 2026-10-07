@@ -69,6 +69,16 @@ html[dir='rtl'] body {
   font-family: 'IBM Plex Sans Arabic', 'DM Sans', ui-sans-serif, system-ui, sans-serif;
 }
 
+html[dir='rtl'],
+[dir='rtl'] {
+  text-align: right;
+}
+
+html[dir='ltr'],
+[dir='ltr'] {
+  text-align: left;
+}
+
 ::selection {
   background: color-mix(in oklab, var(--brand) 28%, white);
 }
