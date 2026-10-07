@@ -35,7 +35,7 @@ export function AppShell() {
       </div>
 
       {mobileOpen ? (
-        <div className="fixed inset-0 z-50 lg:hidden">
+        <div className="fixed inset-0 z-50 lg:hidden" dir={dir}>
           <button
             type="button"
             className="absolute inset-0 bg-slate-950/40"
@@ -48,9 +48,9 @@ export function AppShell() {
         </div>
       ) : null}
 
-      <div className="flex min-h-screen flex-col">
+      <div className="flex min-h-screen flex-col" dir={dir}>
         <header className="sticky top-0 z-30 border-b border-border-subtle/80 bg-white/75 backdrop-blur-md">
-          <div className="flex items-center gap-3 px-4 py-3 sm:px-6">
+          <div className={cn('flex items-center gap-3 px-4 py-3 sm:px-6', textAlign)}>
             <Button
               variant="ghost"
               size="icon"
@@ -85,7 +85,7 @@ export function AppShell() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuLabel>
-                    <div className="flex flex-col">
+                    <div className={cn('flex flex-col', textAlign)}>
                       <span>{user?.name}</span>
                       <span className="text-xs font-normal text-slate-500">{user?.email || user?.phone}</span>
                     </div>

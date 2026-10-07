@@ -1,13 +1,15 @@
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Check, Save, X } from 'lucide-react'
+import { Check, FileBarChart2, Save, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import { cn, formatDate, fullName } from '@/lib/utils'
 import type { Attendance, Paginated, Trainee } from '@/types'
 import { PageHeader } from '@/components/common/page-header'
 import { EmptyBlock, ErrorBlock, LoadingBlock } from '@/components/common/query-state'
+import { VoiceNotesInput } from '@/components/attendance/voice-notes-input'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -243,14 +245,22 @@ export function AttendancePage() {
         title={t('attendance.title')}
         description={t('attendance.subtitle')}
         actions={
-          <Button
-            onClick={() => saveMutation.mutate()}
-            disabled={saveMutation.isPending || pendingRecords.length === 0}
-          >
-            <Save className="h-4 w-4" />
-            {t('attendance.saveBulk')}
-            {pendingRecords.length > 0 ? ` (${pendingRecords.length})` : ''}
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button asChild variant="outline">
+              <Link to="/attendance/report">
+                <FileBarChart2 className="h-4 w-4" />
+                {t('attendance.report.title')}
+              </Link>
+            </Button>
+            <Button
+              onClick={() => saveMutation.mutate()}
+              disabled={saveMutation.isPending || pendingRecords.length === 0}
+            >
+              <Save className="h-4 w-4" />
+              {t('attendance.saveBulk')}
+              {pendingRecords.length > 0 ? ` (${pendingRecords.length})` : ''}
+            </Button>
+          </div>
         }
       />
 
@@ -301,10 +311,9 @@ export function AttendancePage() {
                     {renderStatusControls(trainee.id, draft, editable, true)}
                   </div>
 
-                  <Input
+                  <VoiceNotesInput
                     value={draft.notes}
-                    onChange={(e) => setRowNotes(trainee.id, e.target.value)}
-                    placeholder={t('app.notes')}
+                    onChange={(notes) => setRowNotes(trainee.id, notes)}
                     disabled={!editable}
                   />
                 </div>
@@ -343,10 +352,9 @@ export function AttendancePage() {
                       </TableCell>
                       <TableCell>{renderStatusControls(trainee.id, draft, editable)}</TableCell>
                       <TableCell>
-                        <Input
+                        <VoiceNotesInput
                           value={draft.notes}
-                          onChange={(e) => setRowNotes(trainee.id, e.target.value)}
-                          placeholder={t('app.notes')}
+                          onChange={(notes) => setRowNotes(trainee.id, notes)}
                           disabled={!editable}
                         />
                       </TableCell>

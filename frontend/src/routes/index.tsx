@@ -15,6 +15,7 @@ import { ParentsPage } from '@/pages/parents/ParentsPage'
 import { PackagesPage } from '@/pages/packages/PackagesPage'
 import { SubscriptionsPage } from '@/pages/subscriptions/SubscriptionsPage'
 import { AttendancePage } from '@/pages/attendance/AttendancePage'
+import { AttendanceReportPage } from '@/pages/attendance/AttendanceReportPage'
 import { ScanQrPage } from '@/pages/attendance/ScanQrPage'
 import { OrgQrPage } from '@/pages/attendance/OrgQrPage'
 import { ProgressPage } from '@/pages/progress/ProgressPage'
@@ -76,6 +77,7 @@ export function AppRoutes() {
             <Route path="/packages" element={<PackagesPage />} />
             <Route path="/subscriptions" element={<SubscriptionsPage />} />
             <Route path="/attendance" element={<AttendancePage />} />
+            <Route path="/attendance/report" element={<AttendanceReportPage />} />
             <Route path="/attendance/scan" element={<ScanQrPage />} />
             <Route path="/attendance/org-qr" element={<OrgQrPage />} />
             <Route path="/progress" element={<ProgressPage />} />

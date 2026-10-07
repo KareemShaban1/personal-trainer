@@ -19,23 +19,19 @@ const ROLE_ICONS = {
 } as const
 
 function HowToPanel({ steps }: { steps: GuideStep[] }) {
-  const { t, i18n } = useTranslation()
-  const isRtl = i18n.language.startsWith('ar')
+  const { t } = useTranslation()
 
   return (
-    <ol dir={isRtl ? 'rtl' : 'ltr'} className="space-y-4 text-start">
+    <ol className="space-y-4 text-start">
       {steps.map((step, index) => (
         <li
           key={`${step.title}-${index}`}
-          className={cn(
-            'flex gap-4 rounded-2xl border border-border-subtle bg-surface-elevated/90 p-4 shadow-sm sm:p-5',
-            isRtl ? 'flex-row-reverse' : 'flex-row',
-          )}
+          className="flex gap-4 rounded-2xl border border-border-subtle bg-surface-elevated/90 p-4 shadow-sm sm:p-5"
         >
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-950 text-sm font-bold text-white">
             {index + 1}
           </span>
-          <div className={cn('min-w-0 flex-1 space-y-1', isRtl ? 'text-right' : 'text-left')}>
+          <div className="min-w-0 flex-1 space-y-1 text-start">
             <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">
               {t('landing.step', { n: index + 1 })}
             </p>

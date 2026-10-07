@@ -49,6 +49,7 @@
     "packages": "Packages",
     "subscriptions": "Subscriptions",
     "attendance": "Attendance",
+    "attendanceReport": "Attendance report",
     "scanQr": "Scan QR",
     "orgQr": "Check-in QR",
     "progress": "Progress",
@@ -226,7 +227,31 @@
     "historyTitle": "Attendance history",
     "historySubtitle": "Sessions, check-in method, time, and location",
     "myHistorySubtitle": "Your session attendance with method, time, and notes",
-    "traineeHistorySubtitle": "Full attendance history for this trainee"
+    "traineeHistorySubtitle": "Full attendance history for this trainee",
+    "voice": {
+      "placeholder": "Type a note or tap the mic to speak",
+      "listening": "Listening… speak now",
+      "start": "Start voice note",
+      "stop": "Stop listening",
+      "unsupported": "Voice notes are not supported in this browser",
+      "micDenied": "Microphone access was denied",
+      "error": "Could not capture voice note"
+    },
+    "report": {
+      "title": "Attendance report",
+      "subtitle": "Review attendance by day, week, month, custom range, or trainee",
+      "range": "Date range",
+      "day": "Day",
+      "week": "Week",
+      "month": "Month",
+      "custom": "Custom",
+      "activeRange": "Selected period",
+      "selectRange": "Choose a from and to date",
+      "allTrainees": "All trainees",
+      "allDates": "All dates",
+      "showing": "Showing {{range}} · {{trainee}}",
+      "emptyDescription": "No attendance records match these filters. Try another range or trainee."
+    }
   },
   "progress": {
     "title": "Progress",

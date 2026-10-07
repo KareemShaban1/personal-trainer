@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from 'sonner'
 import { AuthProvider } from '@/contexts/auth-context'
 import { ThemeProvider } from '@/contexts/theme-provider'
+import { LocaleRoot } from '@/components/layout/locale-root'
 import { AppRoutes } from '@/routes'
 
 const queryClient = new QueryClient({
@@ -21,8 +22,10 @@ export default function App() {
       <ThemeProvider>
         <AuthProvider>
           <BrowserRouter>
-            <AppRoutes />
-            <Toaster richColors position="top-center" closeButton />
+            <LocaleRoot>
+              <AppRoutes />
+              <Toaster richColors position="top-center" closeButton />
+            </LocaleRoot>
           </BrowserRouter>
         </AuthProvider>
       </ThemeProvider>

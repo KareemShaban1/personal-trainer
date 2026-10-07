@@ -1,9 +1,9 @@
-import { useMemo, type CSSProperties, type ReactNode } from 'react'
+import { useMemo, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CalendarDays, Clock3, MapPin, NotebookPen, Package, QrCode, ScanLine, UserRound } from 'lucide-react'
 import type { Attendance } from '@/types'
 import { useLocaleLayout } from '@/hooks/use-locale-layout'
-import { formatDate, formatDateTime, formatTime } from '@/lib/utils'
+import { cn, formatDate, formatDateTime, formatTime } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { EmptyBlock } from '@/components/common/query-state'
@@ -38,42 +38,19 @@ function DetailRow({
   icon: Icon,
   label,
   children,
-  dir,
-  isRtl,
   wide = false,
 }: {
   icon: typeof CalendarDays
   label: string
   children: ReactNode
-  dir: 'rtl' | 'ltr'
-  isRtl: boolean
   wide?: boolean
 }) {
-  const alignStyle: CSSProperties = {
-    direction: dir,
-    textAlign: isRtl ? 'right' : 'left',
-  }
-
   return (
-    <div
-      className={wide ? 'sm:col-span-2' : undefined}
-      style={{
-        ...alignStyle,
-        display: 'flex',
-        flexDirection: isRtl ? 'row-reverse' : 'row',
-        alignItems: 'flex-start',
-        gap: '0.5rem',
-      }}
-    >
+    <div className={cn('flex items-start gap-2', wide && 'sm:col-span-2')}>
       <Icon className="mt-0.5 h-4 w-4 shrink-0 text-brand-600" />
-      <div style={{ ...alignStyle, minWidth: 0, flex: 1 }}>
-        <p
-          className="text-xs font-medium uppercase tracking-wide text-slate-500"
-          style={alignStyle}
-        >
-          {label}
-        </p>
-        <div style={alignStyle}>{children}</div>
+      <div className="min-w-0 flex-1">
+        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</p>
+        <div>{children}</div>
       </div>
     </div>
   )
@@ -81,11 +58,7 @@ function DetailRow({
 
 export function AttendanceSummaryCards({ records }: { records: Attendance[] }) {
   const { t } = useTranslation()
-  const { dir, isRtl } = useLocaleLayout()
-  const alignStyle: CSSProperties = {
-    direction: dir,
-    textAlign: isRtl ? 'right' : 'left',
-  }
+  const { dir, textAlign } = useLocaleLayout()
 
   const stats = useMemo(() => {
     const counts = { present: 0, absent: 0, late: 0, excused: 0, total: records.length }
@@ -107,20 +80,12 @@ export function AttendanceSummaryCards({ records }: { records: Attendance[] }) {
   ]
 
   return (
-    <div
-      dir={dir}
-      style={alignStyle}
-      className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5"
-    >
+    <div dir={dir} className={cn('grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5', textAlign)}>
       {items.map((item) => (
         <Card key={item.key}>
-          <CardContent className="p-4" style={alignStyle}>
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-500" style={alignStyle}>
-              {item.label}
-            </p>
-            <p className="mt-2 text-2xl font-bold text-brand-950" style={alignStyle}>
-              {item.value}
-            </p>
+          <CardContent className={cn('p-4', textAlign)}>
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{item.label}</p>
+            <p className="mt-2 text-2xl font-bold text-brand-950">{item.value}</p>
           </CardContent>
         </Card>
       ))}
@@ -140,15 +105,11 @@ export function AttendanceHistoryList({
   showTrainee?: boolean
 }) {
   const { t } = useTranslation()
-  const { dir, isRtl, locale } = useLocaleLayout()
-  const alignStyle: CSSProperties = {
-    direction: dir,
-    textAlign: isRtl ? 'right' : 'left',
-  }
+  const { dir, textAlign, locale } = useLocaleLayout()
 
   if (!records.length) {
     return (
-      <div dir={dir} style={alignStyle}>
+      <div dir={dir} className={textAlign}>
         <EmptyBlock
           title={emptyTitle || t('attendance.empty')}
           description={emptyDescription || t('attendance.emptyDescription')}
@@ -158,7 +119,7 @@ export function AttendanceHistoryList({
   }
 
   return (
-    <div dir={dir} style={alignStyle} className="space-y-3">
+    <div dir={dir} className={cn('space-y-3', textAlign)}>
       {records.map((row) => {
         const MethodIcon = methodIcon(row.check_in_method)
         const hasLocation = row.latitude != null && row.longitude != null
@@ -166,31 +127,14 @@ export function AttendanceHistoryList({
         return (
           <Card key={row.id} className="overflow-hidden">
             <CardContent className="p-0">
-              <div className="space-y-3 p-4" style={alignStyle}>
-                <div
-                  style={{
-                    ...alignStyle,
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: '0.5rem',
-                    justifyContent: isRtl ? 'flex-end' : 'flex-start',
-                    flexDirection: isRtl ? 'row-reverse' : 'row',
-                  }}
-                >
+              <div className={cn('space-y-3 p-4', textAlign)}>
+                <div className="flex flex-wrap gap-2">
                   <Badge variant={statusVariant(row.status)}>
                     {t(`attendance.${row.status || 'present'}`, {
                       defaultValue: row.status || '—',
                     })}
                   </Badge>
-                  <Badge
-                    variant="outline"
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.25rem',
-                      flexDirection: isRtl ? 'row-reverse' : 'row',
-                    }}
-                  >
+                  <Badge variant="outline" className="inline-flex items-center gap-1">
                     <MethodIcon className="h-3 w-3" />
                     {t(`attendance.methods.${row.check_in_method || 'manual'}`, {
                       defaultValue: row.check_in_method || t('attendance.methods.manual'),
@@ -198,17 +142,12 @@ export function AttendanceHistoryList({
                   </Badge>
                 </div>
 
-                <div className="grid gap-3 text-sm sm:grid-cols-2" style={alignStyle}>
-                  <DetailRow icon={CalendarDays} label={t('attendance.date')} dir={dir} isRtl={isRtl}>
+                <div className="grid gap-3 text-sm sm:grid-cols-2">
+                  <DetailRow icon={CalendarDays} label={t('attendance.date')}>
                     <p className="font-medium">{formatDate(row.attendance_date, locale)}</p>
                   </DetailRow>
 
-                  <DetailRow
-                    icon={Clock3}
-                    label={t('attendance.checkInTime')}
-                    dir={dir}
-                    isRtl={isRtl}
-                  >
+                  <DetailRow icon={Clock3} label={t('attendance.checkInTime')}>
                     <p className="font-medium">
                       {row.checked_in_at
                         ? formatTime(row.checked_in_at, locale)
@@ -222,12 +161,7 @@ export function AttendanceHistoryList({
                   </DetailRow>
 
                   {(row.subscription?.package?.name || row.subscription_id) && (
-                    <DetailRow
-                      icon={Package}
-                      label={t('attendance.subscription')}
-                      dir={dir}
-                      isRtl={isRtl}
-                    >
+                    <DetailRow icon={Package} label={t('attendance.subscription')}>
                       <p className="font-medium">
                         {row.subscription?.package?.name ||
                           t('attendance.subscriptionId', { id: row.subscription_id })}
@@ -243,12 +177,7 @@ export function AttendanceHistoryList({
                   )}
 
                   {showTrainee && row.trainee?.user ? (
-                    <DetailRow
-                      icon={UserRound}
-                      label={t('subscriptions.trainee')}
-                      dir={dir}
-                      isRtl={isRtl}
-                    >
+                    <DetailRow icon={UserRound} label={t('subscriptions.trainee')}>
                       <p className="font-medium">
                         {[row.trainee.user.first_name, row.trainee.user.last_name]
                           .filter(Boolean)
@@ -260,13 +189,7 @@ export function AttendanceHistoryList({
                   ) : null}
 
                   {hasLocation ? (
-                    <DetailRow
-                      icon={MapPin}
-                      label={t('attendance.location')}
-                      dir={dir}
-                      isRtl={isRtl}
-                      wide
-                    >
+                    <DetailRow icon={MapPin} label={t('attendance.location')} wide>
                       <p className="font-mono text-xs sm:text-sm">
                         {Number(row.latitude).toFixed(5)}, {Number(row.longitude).toFixed(5)}
                       </p>
@@ -282,13 +205,7 @@ export function AttendanceHistoryList({
                   ) : null}
 
                   {row.notes ? (
-                    <DetailRow
-                      icon={NotebookPen}
-                      label={t('app.notes')}
-                      dir={dir}
-                      isRtl={isRtl}
-                      wide
-                    >
+                    <DetailRow icon={NotebookPen} label={t('app.notes')} wide>
                       <p className="leading-relaxed">{row.notes}</p>
                     </DetailRow>
                   ) : null}

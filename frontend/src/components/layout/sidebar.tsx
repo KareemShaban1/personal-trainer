@@ -6,6 +6,7 @@ import {
   BarChart3,
   Building2,
   ClipboardList,
+  FileBarChart2,
   CreditCard,
   Dumbbell,
   LayoutDashboard,
@@ -22,6 +23,7 @@ import {
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/contexts/auth-context'
 import { useBrandName } from '@/contexts/theme-provider'
+import { useLocaleLayout } from '@/hooks/use-locale-layout'
 
 interface NavItem {
   to: string
@@ -37,6 +39,7 @@ function staffNav(): NavItem[] {
     { to: '/packages', labelKey: 'nav.packages', icon: Package },
     { to: '/subscriptions', labelKey: 'nav.subscriptions', icon: CreditCard },
     { to: '/attendance', labelKey: 'nav.attendance', icon: ClipboardList },
+    { to: '/attendance/report', labelKey: 'nav.attendanceReport', icon: FileBarChart2 },
     { to: '/attendance/scan', labelKey: 'nav.scanQr', icon: ScanLine },
     { to: '/attendance/org-qr', labelKey: 'nav.orgQr', icon: QrCode },
     { to: '/progress', labelKey: 'nav.progress', icon: Activity },
@@ -81,6 +84,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const { t } = useTranslation()
   const { hasRole, organization } = useAuth()
   const brandName = useBrandName()
+  const { dir, textAlign } = useLocaleLayout()
 
   const items = hasRole('super_admin')
     ? superAdminNav()
@@ -91,7 +95,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         : staffNav()
 
   return (
-    <aside className="flex h-full flex-col bg-brand-950 text-brand-50">
+    <aside dir={dir} className={cn('flex h-full flex-col bg-brand-950 text-brand-50', textAlign)}>
       <div className="border-b border-white/10 px-5 py-5">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-600 shadow-lg shadow-brand-900/40">
@@ -112,7 +116,12 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             <NavLink
               key={item.to}
               to={item.to}
-              end={item.to === '/portal' || item.to === '/parent' || item.to === '/dashboard'}
+              end={
+                item.to === '/portal' ||
+                item.to === '/parent' ||
+                item.to === '/dashboard' ||
+                item.to === '/attendance'
+              }
               onClick={onNavigate}
               className={({ isActive }) =>
                 cn(

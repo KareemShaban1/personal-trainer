@@ -47,6 +47,14 @@ class AttendanceController extends Controller
             $query->whereDate('attendance_date', $request->string('date'));
         }
 
+        if ($request->filled('from')) {
+            $query->whereDate('attendance_date', '>=', $request->string('from'));
+        }
+
+        if ($request->filled('to')) {
+            $query->whereDate('attendance_date', '<=', $request->string('to'));
+        }
+
         if ($request->filled('trainee_id')) {
             $query->where('trainee_id', $request->integer('trainee_id'));
         }

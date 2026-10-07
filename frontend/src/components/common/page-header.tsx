@@ -9,32 +9,24 @@ interface PageHeaderProps {
 }
 
 export function PageHeader({ title, description, actions }: PageHeaderProps) {
-  const { dir, textAlign, isRtl } = useLocaleLayout()
+  const { dir, textAlign } = useLocaleLayout()
 
   return (
     <div
       dir={dir}
       className={cn(
-        'mb-6 flex flex-col gap-3 sm:items-end sm:justify-between',
-        isRtl ? 'sm:flex-row-reverse' : 'sm:flex-row',
+        'mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between',
         textAlign,
       )}
     >
-      <div className={cn('animate-fade-up', textAlign)}>
+      <div className={cn('animate-fade-up min-w-0', textAlign)}>
         <h1 className="text-2xl font-bold tracking-tight text-slate-ink sm:text-3xl">{title}</h1>
         {description ? (
           <p className="mt-1 max-w-2xl text-sm text-slate-500 sm:text-base">{description}</p>
         ) : null}
       </div>
       {actions ? (
-        <div
-          className={cn(
-            'animate-fade-up-delay flex flex-wrap gap-2',
-            isRtl ? 'justify-end sm:justify-start' : 'justify-start sm:justify-end',
-          )}
-        >
-          {actions}
-        </div>
+        <div className="animate-fade-up-delay flex flex-wrap gap-2 sm:justify-end">{actions}</div>
       ) : null}
     </div>
   )

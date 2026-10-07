@@ -70,13 +70,53 @@ html[dir='rtl'] body {
 }
 
 html[dir='rtl'],
-[dir='rtl'] {
+[dir='rtl'],
+#locale-root[dir='rtl'] {
   text-align: right;
 }
 
 html[dir='ltr'],
-[dir='ltr'] {
+[dir='ltr'],
+#locale-root[dir='ltr'] {
   text-align: left;
+}
+
+/* Preserve intentional centering (empty states, loaders, etc.) */
+html[dir='rtl'] .text-center,
+html[dir='ltr'] .text-center,
+#locale-root[dir='rtl'] .text-center,
+#locale-root[dir='ltr'] .text-center,
+html[dir='rtl'] .text-center *,
+html[dir='ltr'] .text-center *,
+#locale-root[dir='rtl'] .text-center *,
+#locale-root[dir='ltr'] .text-center * {
+  text-align: center;
+}
+
+/* Tables follow language direction unless a cell opts out */
+html[dir='rtl'] th,
+html[dir='rtl'] td,
+#locale-root[dir='rtl'] th,
+#locale-root[dir='rtl'] td {
+  text-align: right;
+}
+
+html[dir='ltr'] th,
+html[dir='ltr'] td,
+#locale-root[dir='ltr'] th,
+#locale-root[dir='ltr'] td {
+  text-align: left;
+}
+
+html[dir='rtl'] th.text-center,
+html[dir='rtl'] td.text-center,
+html[dir='ltr'] th.text-center,
+html[dir='ltr'] td.text-center,
+#locale-root[dir='rtl'] th.text-center,
+#locale-root[dir='rtl'] td.text-center,
+#locale-root[dir='ltr'] th.text-center,
+#locale-root[dir='ltr'] td.text-center {
+  text-align: center;
 }
 
 ::selection {

@@ -19,7 +19,7 @@ import { useLocaleLayout } from '@/hooks/use-locale-layout'
 
 export function TraineeDetailPage() {
   const { t } = useTranslation()
-  const { dir, textAlign, flexRow, isRtl, locale } = useLocaleLayout()
+  const { dir, textAlign, locale } = useLocaleLayout()
   const { id } = useParams()
 
   const traineeQuery = useQuery({
@@ -71,13 +71,9 @@ export function TraineeDetailPage() {
     return <ErrorBlock onRetry={() => void traineeQuery.refetch()} />
 
   const trainee = traineeQuery.data
-  const alignStyle = {
-    direction: dir,
-    textAlign: (isRtl ? 'right' : 'left') as 'right' | 'left',
-  }
 
   return (
-    <div dir={dir} style={alignStyle} className={cn('w-full', textAlign)}>
+    <div dir={dir} className={cn('w-full', textAlign)}>
       <PageHeader
         title={fullName(trainee.user)}
         description={t('trainees.detail')}
@@ -95,7 +91,7 @@ export function TraineeDetailPage() {
 
       <div className="mb-4 grid gap-4 md:grid-cols-3">
         <Card>
-          <CardContent className={cn('space-y-2 p-5 text-sm', textAlign)} style={alignStyle}>
+          <CardContent className={cn('space-y-2 p-5 text-sm', textAlign)}>
             <p>
               <span className="text-slate-500">{t('app.phone')}: </span>
               {trainee.user?.phone || '—'}
@@ -108,7 +104,7 @@ export function TraineeDetailPage() {
               <span className="text-slate-500">{t('trainees.code')}: </span>
               {trainee.code || '—'}
             </p>
-            <div className={cn('flex', isRtl ? 'justify-end' : 'justify-start')}>
+            <div className="flex justify-start">
               <Badge variant={trainee.status === 'active' ? 'success' : 'secondary'}>
                 {trainee.status === 'active' ? t('app.active') : trainee.status || '—'}
               </Badge>
@@ -117,13 +113,10 @@ export function TraineeDetailPage() {
         </Card>
 
         <Card className="md:col-span-2">
-          <CardHeader className={textAlign} style={alignStyle}>
+          <CardHeader className={textAlign}>
             <CardTitle>{t('trainees.qr')}</CardTitle>
           </CardHeader>
-          <CardContent
-            className={cn('flex items-center gap-4 p-5 pt-0', flexRow)}
-            style={alignStyle}
-          >
+          <CardContent className="flex items-center gap-4 p-5 pt-0">
             <div className="rounded-xl bg-white p-3 ring-1 ring-border-subtle">
               <QRCodeSVG value={`trainee:${trainee.id}:${trainee.code || trainee.id}`} size={120} />
             </div>
@@ -133,31 +126,25 @@ export function TraineeDetailPage() {
       </div>
 
       <Tabs defaultValue="subscriptions" dir={dir}>
-        <TabsList className={cn('flex h-auto w-full flex-wrap', isRtl ? 'justify-end' : 'justify-start')}>
+        <TabsList className="flex h-auto w-full flex-wrap justify-start">
           <TabsTrigger value="subscriptions">{t('trainees.subscriptions')}</TabsTrigger>
           <TabsTrigger value="attendance">{t('trainees.attendanceSummary')}</TabsTrigger>
           <TabsTrigger value="progress">{t('trainees.progress')}</TabsTrigger>
           <TabsTrigger value="notes">{t('trainees.notes')}</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="subscriptions" className="space-y-2" style={alignStyle}>
+        <TabsContent value="subscriptions" className="space-y-2">
           {trainee.subscriptions?.length ? (
             trainee.subscriptions.map((sub) => (
               <Card key={sub.id}>
-                <CardContent
-                  className={cn(
-                    'flex flex-wrap items-center gap-3 p-4',
-                    isRtl ? 'flex-row-reverse justify-between' : 'justify-between',
-                  )}
-                  style={alignStyle}
-                >
+                <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
                   <div className={cn('min-w-0', textAlign)}>
                     <p className="font-semibold">{sub.package?.name}</p>
                     <p className="text-xs text-slate-500">
                       {formatDate(sub.started_at, locale)} → {formatDate(sub.ends_at, locale)}
                     </p>
                   </div>
-                  <div className={cn('flex items-center gap-2', flexRow)}>
+                  <div className="flex items-center gap-2">
                     <Badge>{sub.status || '—'}</Badge>
                     <Badge variant="warning">
                       {sub.remaining_sessions ?? 0} {t('subscriptions.remaining')}
@@ -174,11 +161,11 @@ export function TraineeDetailPage() {
           )}
         </TabsContent>
 
-        <TabsContent value="attendance" className="space-y-5" style={alignStyle}>
+        <TabsContent value="attendance" className="space-y-5">
           {attendanceQuery.isLoading ? <LoadingBlock /> : null}
           {!attendanceQuery.isLoading ? (
             <>
-              <div style={alignStyle} className={textAlign}>
+              <div className={textAlign}>
                 <h3 className="text-base font-semibold text-brand-950">{t('attendance.historyTitle')}</h3>
                 <p className="mt-1 text-sm text-slate-500">{t('attendance.traineeHistorySubtitle')}</p>
               </div>
@@ -194,12 +181,12 @@ export function TraineeDetailPage() {
           ) : null}
         </TabsContent>
 
-        <TabsContent value="progress" className="space-y-2" style={alignStyle}>
+        <TabsContent value="progress" className="space-y-2">
           {progressQuery.isLoading ? <LoadingBlock /> : null}
           {progressQuery.data?.length ? (
             progressQuery.data.map((row) => (
               <Card key={row.id}>
-                <CardContent className={cn('p-4', textAlign)} style={alignStyle}>
+                <CardContent className={cn('p-4', textAlign)}>
                   <p className="text-sm font-semibold">{formatDate(row.recorded_at, locale)}</p>
                   <p className="text-sm text-slate-600">{row.notes || '—'}</p>
                 </CardContent>
@@ -210,12 +197,12 @@ export function TraineeDetailPage() {
           )}
         </TabsContent>
 
-        <TabsContent value="notes" className="space-y-2" style={alignStyle}>
+        <TabsContent value="notes" className="space-y-2">
           {notesQuery.isLoading ? <LoadingBlock /> : null}
           {notesQuery.data?.length ? (
             notesQuery.data.map((note) => (
               <Card key={note.id}>
-                <CardContent className={cn('p-4', textAlign)} style={alignStyle}>
+                <CardContent className={cn('p-4', textAlign)}>
                   <p className="text-sm">{note.body}</p>
                   <p className="mt-1 text-xs text-slate-500">
                     {t(`notes.${note.visibility}`, { defaultValue: note.visibility })} ·{' '}
